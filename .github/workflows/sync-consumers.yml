@@ -13,79 +13,68 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  sync:
-    name: Sync ${{ matrix.repository }}
+  prepare:
+    name: Prepare ${{ matrix.repository }} update
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    # A failed consumer produces no artifact; its matching publish leg will fail while
+    # the other consumers can still publish independently.
+    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
         repository:
           - macos
-          # Canonical repository name; the earlier "1132-Fixer-Windows" entry
-          # made the app-token step fail ("repository does not exist or is
-          # not accessible") on every push since 2026-08-23.
           - windows
-          # Renamed from "chrome" on 2026-09-11 (same repository, id
-          # 1246919604); the app-token step needs the current name.
           - browser
           - website
 
     steps:
-      - name: Create cross-repository token
-        id: app-token
-        uses: actions/create-github-app-token@v3
-        with:
-          client-id: ${{ vars.DESIGN_SYSTEM_SYNC_APP_CLIENT_ID }}
-          private-key: ${{ secrets.DESIGN_SYSTEM_SYNC_APP_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-          repositories: |
-            design-system
-            ${{ matrix.repository }}
-          permission-contents: write
-          permission-pull-requests: write
-
-      - name: Check out consumer
-        uses: actions/checkout@v7
+      - name: Check out consumer without persisted credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: ${{ github.repository_owner }}/${{ matrix.repository }}
-          token: ${{ steps.app-token.outputs.token }}
           submodules: recursive
           path: consumer
           fetch-depth: 0
+          persist-credentials: false
 
-      - name: Update design system and synced assets
+      - name: Check out requested design-system revision
         working-directory: consumer
         env:
           DESIGN_SYSTEM_SHA: ${{ github.sha }}
         run: |
+          set -euo pipefail
+          # Every matrix repository is public, so preparation does not need the
+          # GitHub App private key or any cross-repository credential.
           git -C design-system fetch origin "$DESIGN_SYSTEM_SHA"
           git -C design-system checkout --detach "$DESIGN_SYSTEM_SHA"
+
+      - name: Assert checkout credentials were removed
+        working-directory: consumer
+        run: |
+          set -euo pipefail
+          for repository_path in . design-system; do
+            if git -C "$repository_path" config --local --get-regexp '.*extraheader.*' >/dev/null 2>&1 \
+              || git -C "$repository_path" config --local --get-regexp '^credential\.' >/dev/null 2>&1; then
+              echo "Checkout left a credential setting in $repository_path; refusing to execute consumer code." >&2
+              exit 1
+            fi
+          done
+
+      # This step executes consumer-controlled code. It intentionally has no write token,
+      # no persisted Git credential, and no later privileged step on the same runner.
+      - name: Update synced assets and consumer pins
+        working-directory: consumer
+        env:
+          DESIGN_SYSTEM_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
           design-system/scripts/brand-assets.sh sync . .brand-assets.tsv
 
-          # Moving the gitlink can invalidate files a consumer keeps in step
-          # with it. 1132-Fixer/windows asserts in its own tests that every
-          # design-system commit it cites equals the gitlink, so a bump alone
-          # left its "Build & Test" red twice: on pull request #219 (ac0f1b1)
-          # and again on main after #221 (793d3cf).
-          #
-          # A consumer that has this problem declares a "design:pin" script.
-          # Run it when it exists and do nothing when it does not. The failure
-          # is deliberately not swallowed: a sync that cannot bring a consumer
-          # to a green state should stop and be seen, not open a pull request
-          # that is known to be red.
-          #
-          # The contract is the script name and one argument, the full 40-hex
-          # design-system commit. Nothing here knows which files a consumer
-          # keeps in step, and nothing here should.
-          #
-          # Passing the SHA is required, not a convenience. At this point the
-          # submodule WORKING TREE is at $DESIGN_SYSTEM_SHA but the superproject
-          # INDEX still records the previous commit, because the gitlink is
-          # staged in the next step. A hook that reads the index sees the old
-          # value: that is how 1132-Fixer/windows#223 was opened with its
-          # gitlink at 08024a1 and its citations rolled to 793d3cf, failing the
-          # consumer's own test on a pull request this workflow had just
-          # "fixed".
+          # Consumers that keep citations or generated files aligned with the gitlink
+          # expose a design:pin script. The full SHA is explicit because the superproject
+          # index still records the old gitlink until the patch is applied in publish.
           if [[ -f package.json ]] \
             && node -e 'const s=(require("./package.json").scripts)||{}; process.exit(s["design:pin"]?0:1)'; then
             echo "Running the consumer's design:pin hook for $DESIGN_SYSTEM_SHA"
@@ -94,53 +83,184 @@ jobs:
             echo "No design:pin hook in this consumer; nothing to roll"
           fi
 
-      - name: Commit, push, and open or update pull request
+      - name: Serialize tracked changes as data
         working-directory: consumer
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          REPOSITORY: ${{ github.repository_owner }}/${{ matrix.repository }}
+          PATCH_DIR: ${{ runner.temp }}/consumer-sync
+          CONSUMER_REPOSITORY: ${{ matrix.repository }}
           DESIGN_SYSTEM_SHA: ${{ github.sha }}
-          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
         run: |
-          if git diff --quiet && git diff --cached --quiet; then
-            echo "Consumer already uses $DESIGN_SYSTEM_SHA"
-            exit 0
-          fi
+          set -euo pipefail
+          mkdir -p "$PATCH_DIR"
+          actual_design_sha="$(git -C design-system rev-parse HEAD)"
+          [[ "$actual_design_sha" == "$DESIGN_SYSTEM_SHA" ]] || {
+            echo "Consumer changed the requested design-system revision." >&2
+            exit 1
+          }
 
-          app_user_id=$(gh api "/users/$APP_SLUG[bot]" --jq .id)
-          git config user.name "$APP_SLUG[bot]"
-          git config user.email "$app_user_id+$APP_SLUG[bot]@users.noreply.github.com"
-
-          branch=automation/design-system-sync
-          git checkout -B "$branch"
-          git add design-system .brand-assets.tsv
+          git add design-system
           while IFS=$'\t' read -r canonical target; do
             [[ -z ${canonical:-} || ${canonical:0:1} == "#" ]] && continue
             git add -- "$target"
-          done < .brand-assets.tsv
-          # Whatever the consumer's design:pin hook rewrote. "-u" stages
-          # modifications to tracked files only, so a hook cannot add an
-          # untracked file to this commit; the checkout is clean apart from
-          # this job's own edits.
-          git add -u
-          git commit -m "Update design system to ${DESIGN_SYSTEM_SHA:0:12}"
-          git push --force-with-lease origin "$branch"
+          done < <(git show HEAD:.brand-assets.tsv)
 
-          # "gh pr view <branch>" also matches a closed or merged pull request
-          # on the same branch. After the first sync pull request merged, this
-          # step therefore retitled that merged pull request
-          # (1132-Fixer/windows#201, rewritten on 2026-09-11 to name a commit it
-          # never contained) and opened nothing, so the pushed submodule bump
-          # stayed on the branch unreviewed. Match open pull requests only.
-          existing=$(gh pr list --repo "$REPOSITORY" --head "$branch" --state open --json number --jq '.[0].number // empty')
+          # The only current consumer hook is Windows' deliberately narrow pin roller.
+          # Keep this allowlist explicit so arbitrary tracked edits from consumer code
+          # cannot be serialized into the privileged publishing job.
+          if [[ "$CONSUMER_REPOSITORY" == windows ]]; then
+            git add -- AGENTS.md DESIGN-SYNC.md
+          fi
 
+          if ! git diff --quiet --; then
+            echo "Consumer code changed tracked files outside the sync allowlist:" >&2
+            git diff --name-only -- >&2
+            exit 1
+          fi
+          git diff --cached --binary --full-index > "$PATCH_DIR/consumer.patch"
+          echo "Prepared $(wc -c < "$PATCH_DIR/consumer.patch" | tr -d '[:space:]') patch bytes."
+
+      - name: Upload prepared patch
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: design-sync-${{ matrix.repository }}
+          path: ${{ runner.temp }}/consumer-sync
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    name: Publish ${{ matrix.repository }} update
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        repository:
+          - macos
+          - windows
+          - browser
+          - website
+
+    steps:
+      - name: Download prepared patch
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: design-sync-${{ matrix.repository }}
+          path: ${{ runner.temp }}/consumer-sync
+
+      - name: Check out the current consumer default branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: ${{ github.repository_owner }}/${{ matrix.repository }}
+          submodules: recursive
+          path: consumer
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Assert publish checkout credentials were removed
+        working-directory: consumer
+        run: |
+          set -euo pipefail
+          for repository_path in . design-system; do
+            if git -C "$repository_path" config --local --get-regexp '.*extraheader.*' >/dev/null 2>&1 \
+              || git -C "$repository_path" config --local --get-regexp '^credential\.' >/dev/null 2>&1; then
+              echo "Checkout left a credential setting in $repository_path; refusing to continue." >&2
+              exit 1
+            fi
+          done
+
+      - name: Apply prepared changes without executing consumer code
+        id: apply
+        working-directory: consumer
+        env:
+          PATCH_FILE: ${{ runner.temp }}/consumer-sync/consumer.patch
+          CONSUMER_REPOSITORY: ${{ matrix.repository }}
+          DESIGN_SYSTEM_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [[ ! -s "$PATCH_FILE" ]]; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "Consumer already uses the requested design-system revision."
+            exit 0
+          fi
+          git apply --binary --index "$PATCH_FILE"
+          git diff --cached --check
+
+          declare -A allowed_paths=([design-system]=1)
+          while IFS=$'\t' read -r canonical target; do
+            [[ -z ${canonical:-} || ${canonical:0:1} == "#" || -z ${target:-} ]] && continue
+            allowed_paths["$target"]=1
+          done < <(git show HEAD:.brand-assets.tsv)
+          if [[ "$CONSUMER_REPOSITORY" == windows ]]; then
+            allowed_paths[AGENTS.md]=1
+            allowed_paths[DESIGN-SYNC.md]=1
+          fi
+
+          while IFS= read -r -d '' changed_path; do
+            if [[ -z ${allowed_paths["$changed_path"]+allowed} ]]; then
+              printf 'Prepared patch changes a path outside the publish allowlist: %q\n' "$changed_path" >&2
+              exit 1
+            fi
+            if [[ "$changed_path" != design-system && ( ! -e "$changed_path" || -L "$changed_path" ) ]]; then
+              printf 'Prepared patch deletes or symlinks an allowed file: %q\n' "$changed_path" >&2
+              exit 1
+            fi
+          done < <(git diff --cached --name-only -z)
+
+          staged_design_sha="$(git ls-files -s -- design-system | awk '$1 == "160000" { print $2 }')"
+          [[ "$staged_design_sha" == "$DESIGN_SYSTEM_SHA" ]] || {
+            echo "Prepared patch does not pin the requested design-system revision." >&2
+            exit 1
+          }
+          echo "has_changes=true" >> "$GITHUB_OUTPUT"
+
+      # The write token exists only on this fresh runner, after the patch has been applied
+      # as inert data. No consumer script is executed in this job.
+      - name: Create consumer write token
+        if: steps.apply.outputs.has_changes == 'true'
+        id: write-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+        with:
+          client-id: ${{ vars.DESIGN_SYSTEM_SYNC_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DESIGN_SYSTEM_SYNC_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ matrix.repository }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Commit, push, and open or update pull request
+        if: steps.apply.outputs.has_changes == 'true'
+        working-directory: consumer
+        env:
+          GH_TOKEN: ${{ steps.write-token.outputs.token }}
+          REPOSITORY: ${{ github.repository_owner }}/${{ matrix.repository }}
+          DESIGN_SYSTEM_SHA: ${{ github.sha }}
+          APP_SLUG: ${{ steps.write-token.outputs.app-slug }}
+        run: |
+          set -euo pipefail
+          safe_git() { /usr/bin/git -c core.hooksPath=/dev/null "$@"; }
+
+          app_user_id=$(/usr/bin/gh api "/users/$APP_SLUG[bot]" --jq .id)
+          safe_git config user.name "$APP_SLUG[bot]"
+          safe_git config user.email "$app_user_id+$APP_SLUG[bot]@users.noreply.github.com"
+          safe_git remote set-url origin "https://github.com/$REPOSITORY.git"
+
+          branch=automation/design-system-sync
+          safe_git checkout -B "$branch"
+          safe_git commit -m "Update design system to ${DESIGN_SYSTEM_SHA:0:12}"
+
+          auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | /usr/bin/base64 | /usr/bin/tr -d '\n')"
+          safe_git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" \
+            push --force-with-lease origin "$branch"
+          unset auth
+
+          existing=$(/usr/bin/gh pr list --repo "$REPOSITORY" --head "$branch" --state open --json number --jq '.[0].number // empty')
           if [[ -n ${existing:-} ]]; then
-            gh pr edit "$existing" \
+            /usr/bin/gh pr edit "$existing" \
               --repo "$REPOSITORY" \
               --title "Update design system to ${DESIGN_SYSTEM_SHA:0:12}" \
               --body "Automated design-system submodule and canonical brand asset sync from 1132-Fixer/design-system@$DESIGN_SYSTEM_SHA."
           else
-            gh pr create \
+            /usr/bin/gh pr create \
               --repo "$REPOSITORY" \
               --head "$branch" \
               --title "Update design system to ${DESIGN_SYSTEM_SHA:0:12}" \

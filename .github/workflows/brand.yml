@@ -12,7 +12,7 @@ jobs:
   canonical-assets:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Check canonical assets
         run: |
           test -s assets/1132-Fixer-App-Icon-1024x1024@1x.png
