@@ -21,3 +21,4 @@ Values live in [`../tokens/spacing.json`](../tokens/spacing.json) — an 8-point
 - Component **padding** should use `12`–`16`; **layout gutters** between components should use `16`–`24`; **section spacing** should use `24`+.
 - Don't invent in-between values (e.g. `20px`) — pick the nearest step down.
 - **Windows exception:** the shipped Windows app also defines `20` and `40` ([`../tokens/windows.json`](../tokens/windows.json)), used only inside its Explore and feedback dialogs; its primary screens use the shared scale. See [`platforms/windows.md`](platforms/windows.md).
+- **macOS Repair Record usage:** uses the canonical scale (`4, 8, 12, 16, 24, 32, 48, 64` pt) with within-row spacing `8–12` pt, grouped content `16` pt, major sections `24` pt, and outer window margins `24` pt. See [`platforms/macos.md`](platforms/macos.md).

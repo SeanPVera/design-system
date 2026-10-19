@@ -8,17 +8,22 @@ Status color alone is never sufficient — every `success`/`warning`/`error` sta
 
 ## Keyboard
 
-- Every interactive element (buttons, inputs, tag pills if interactive) must be reachable via Tab in visual order.
-- `Enter`/`Space` activates buttons; `Esc` closes modals (Report a bug dialog).
-- Focus ring: 2px solid `primary`, offset 2px, visible on every focusable element — never suppressed with `outline: none` without a replacement.
+- Every interactive element (buttons, inputs, disclosures, links) must be reachable via Tab in visual order (Full Keyboard Access).
+- `Enter`/`Space` activates buttons; `Esc` closes modals/sheets (Repair review, Activity Log, System check details, Report a bug). In multiline text editors, `Enter` inserts a newline and must never unexpectedly start or send an operation.
+- Focus ring: 2px solid `focus` (`#8DBCF2` on macOS, `#71AFFF` on Windows, or `primary` on web), offset with a 2px `background` gap, visible on every focusable element — never suppressed without an accessible replacement.
+- Primary buttons and interactive controls on macOS pair their fill with `border-control` (`#718399`, `>= 3:1` against dark surfaces) so boundaries remain clear in both standard and increased-contrast modes.
 
 ## Platform-specific notes
 
 - **Windows (Narrator)**: label all icon-only buttons with accessible names; system tray icon needs a tooltip/name distinct from the app name.
-- **macOS (VoiceOver)**: native titlebar and controls (see [`platforms/macos.md`](platforms/macos.md)) inherit VoiceOver support for free — don't replace them with custom-drawn equivalents that lose it.
+- **macOS (VoiceOver & Dynamic Text)**:
+  - Native titlebar and controls (see [`platforms/macos.md`](platforms/macos.md)) inherit VoiceOver support — preserve native control semantics and disabled states.
+  - Status always includes explicit words alongside a symbol (`Differentiate Without Color`).
+  - Retain full accessible file paths even when visually abbreviated, and never clip multiline warning or recovery instructions.
+  - Restore keyboard focus predictably after dismissing sheets, and announce meaningful validation/submission errors.
 - **Chrome extension**: popup DOM must have a logical heading structure (`h1`/`h2`) since some accessibility trees announce popups without a page title otherwise.
 - **Website**: standard web a11y — semantic HTML, alt text on all screenshots/marketing imagery, skip-to-content link if nav grows past a simple header.
 
 ## Motion
 
-Respect `prefers-reduced-motion` — see [`07-motion.md`](07-motion.md).
+Respect `prefers-reduced-motion` and macOS `accessibilityReduceMotion` — see [`07-motion.md`](07-motion.md).

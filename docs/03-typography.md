@@ -31,3 +31,20 @@ Always use the platform's native system font first — never ship a bundled web 
 - Use `mono` for any output the user might copy for support purposes (log lines, diagnostic values, file paths like `/Applications/zoom.us.app`) — this is already how the shipped Activity Log panel is meant to read once populated.
 - Never mix more than 3 weights on one screen — the shipped UI uses regular (400) and bold (700) headings with semibold (600) labels; stay within that range.
 - Headings don't use the brand gradient — gradient is logo-only (see [`02-colors.md`](02-colors.md)).
+
+## macOS Repair Record scale
+
+The macOS app ([`platforms/macos.md`](platforms/macos.md)) uses native `SF Pro` and `SF Mono` (never a bundled web font) with sentence case, tabular numerals (`monospacedDigit()`) for aligned numeric values, and at most two weights (`Regular` 400 and `Semibold` 600), recorded in [`../tokens/macos.json`](../tokens/macos.json):
+
+| Role | Size / Line height (pt) | Weight | Font |
+|---|---|---|---|
+| `main-outcome` | `24 / 30` | Semibold (`600`) | `SF Pro` |
+| `compact-identity` | `16 / 22` | Semibold (`600`) | `SF Pro` |
+| `section-heading` | `16 / 22` | Semibold (`600`) | `SF Pro` |
+| `body` (and substantive warnings / recovery instructions) | `14 / 20` | Regular (`400`) | `SF Pro` |
+| `button` | `14 / 20` | Semibold (`600`) | `SF Pro` |
+| `label` (field or row label) | `13 / 18` | Semibold (`600`) | `SF Pro` |
+| `metadata` | `12 / 16` | Regular (`400`) | `SF Pro` |
+| `mono` (paths and diagnostics) | `13 / 20` | Regular (`400`) | `SF Mono` |
+
+Let content grow vertically rather than clipping or truncating to enforce a nominal line height.
