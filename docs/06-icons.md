@@ -22,4 +22,5 @@ The brand gear mark (`assets/gear.png`) is separate from Lucide and is not used 
 ## Rules
 
 - In-UI icons (checkmarks, status icons, section header icons) are functional, not branded — Lucide, sized to match adjacent text (`body`/`label`), colored with `text-primary`, `success`, `warning`, or `error` per [`02-colors.md`](02-colors.md) state rules.
-- The brand gear mark is reserved for app/extension icons and menu-bar/tray glyphs — never substitute it for a Lucide icon inside product UI.
+- **macOS platform exception:** the native macOS SwiftUI app uses **SF Symbols** for functional controls and status indicators so symbols scale natively with SF Pro weights and accessibility sizes. Do not place ornamental/decorative icons beside section headings, and always pair status symbols with explicit words. See [`platforms/macos.md`](platforms/macos.md).
+- The brand gear mark is reserved for app/extension icons and menu-bar/tray glyphs — never substitute it for a Lucide or SF Symbol icon inside product UI.

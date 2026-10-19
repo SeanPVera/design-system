@@ -1,0 +1,73 @@
+{
+  "$comment": "Shipped macOS palette and layout tokens for The Repair Record (1132 Fixer macOS redesign). Overlays tokens/colors.json, typography.json, radius.json, and spacing.json for the macOS app only; see docs/platforms/macos.md and docs/02-colors.md § macOS shipped palette.",
+  "colors": {
+    "background": "#0F1724",
+    "surface": "#202B3D",
+    "surface-modal": "#2A2530",
+    "surface-hover": "#26344A",
+    "surface-pressed": "#1B2636",
+    "text-primary": "#F5F7FA",
+    "text-secondary": "#9AA5B4",
+    "border": "#33415A",
+    "border-control": "#718399",
+    "primary": "#235FA8",
+    "primary-hover": "#286AB5",
+    "primary-pressed": "#1D508D",
+    "link": "#8DBCF2",
+    "focus": "#8DBCF2",
+    "success": "#3CCF6E",
+    "warning": "#FFB547",
+    "error": "#FF7875",
+    "overlay": "rgba(15,23,36,0.72)",
+    "gradient-brand-start": "#FFD24C",
+    "gradient-brand-end": "#E8552A"
+  },
+  "typography": {
+    "font-family-sans": "SF Pro",
+    "font-family-mono": "SF Mono",
+    "roles": {
+      "main-outcome": { "size": 24, "lineHeight": 30, "weight": 600, "family": "sans" },
+      "compact-identity": { "size": 16, "lineHeight": 22, "weight": 600, "family": "sans" },
+      "section-heading": { "size": 16, "lineHeight": 22, "weight": 600, "family": "sans" },
+      "body": { "size": 14, "lineHeight": 20, "weight": 400, "family": "sans" },
+      "button": { "size": 14, "lineHeight": 20, "weight": 600, "family": "sans" },
+      "label": { "size": 13, "lineHeight": 18, "weight": 600, "family": "sans" },
+      "metadata": { "size": 12, "lineHeight": 16, "weight": 400, "family": "sans" },
+      "mono": { "size": 13, "lineHeight": 20, "weight": 400, "family": "mono" }
+    }
+  },
+  "spacing": {
+    "4": 4,
+    "8": 8,
+    "12": 12,
+    "16": 16,
+    "24": 24,
+    "32": 32,
+    "48": 48,
+    "64": 64,
+    "withinRowMin": 8,
+    "withinRowMax": 12,
+    "groupedContent": 16,
+    "majorSection": 24,
+    "outerMargin": 24
+  },
+  "radius": {
+    "row": 0,
+    "control": 6
+  },
+  "focus": {
+    "ringWidth": 2,
+    "ringGap": 2
+  },
+  "motion": {
+    "controlFeedbackMs": 150,
+    "disclosureMs": 200
+  },
+  "window": {
+    "default": [900, 760],
+    "minimum": [720, 640],
+    "contentMaxWidth": 960,
+    "recordFourColumnMinWidth": 840,
+    "rowMinHeight": 44
+  }
+}

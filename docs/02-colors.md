@@ -69,6 +69,39 @@ on `background` and 7.7:1 on `surface`; `text-muted` `#7F8DA1` is 5.3:1 on
 text. White on `primary` is 4.0:1, so `primary` fills carry 14px/600 labels
 (large-text threshold 3:1) and are never used for body-size regular text.
 
+## macOS shipped palette
+
+The macOS app ([`platforms/macos.md`](platforms/macos.md)) ships a dedicated
+overlay for **The Repair Record** workspace, recorded in
+[`../tokens/macos.json`](../tokens/macos.json). It reuses the canonical
+`background`, `surface`, `surface-modal`, `text-primary`, `text-secondary`,
+`border`, `success`, `warning`, `overlay`, and `gradient-brand-*` tokens while
+providing explicit interactive, control-boundary, and contrast-corrected
+roles so small text Meets WCAG AA (`>= 4.5:1`) and non-text control boundaries
+meet `>= 3:1` against dark surfaces withoutchanging Windows, website, or
+extension appearance.
+
+| macOS token | Hex | Role |
+|---|---|---|
+| `background` | `#0F1724` | Main window background |
+| `surface` | `#202B3D` | Record rows, panels, secondary surfaces |
+| `surface-modal` | `#2A2530` | Sheets and modal surfaces |
+| `surface-hover` / `surface-pressed` | `#26344A` / `#1B2636` | Row and secondary control hover / pressed fills |
+| `text-primary` / `text-secondary` | `#F5F7FA` / `#9AA5B4` | Primary and secondary copy |
+| `border` / `border-control` | `#33415A` / `#718399` | Structural rule dividers / interactive control & primary button boundary |
+| `primary` / `primary-hover` / `primary-pressed` | `#235FA8` / `#286AB5` / `#1D508D` | Filled primary action (one per context) |
+| `link` / `focus` | `#8DBCF2` | Inline links and 2pt focus ring (with 2pt `background` gap) |
+| `success` / `warning` / `error` | `#3CCF6E` / `#FFB547` / `#FF7875` | Semantic status only (always paired with symbol + text) |
+| `overlay` | `rgba(15,23,36,0.72)` | Modal scrim |
+| `gradient-brand-start` / `gradient-brand-end` | `#FFD24C` / `#E8552A` | Approved brand wordmark / icon asset only |
+
+Contrast notes: `primary` (`#235FA8`) with `text-primary` (`#F5F7FA`) and
+`error` (`#FF7875`) on `background`/`surface` correct small-text contrast
+defects from the base palette (`>= 4.5:1`). Because dark `primary` fill alone
+has low boundary contrast against `surface`, primary buttons and interactive
+controls also pair with `border-control` (`#718399`, `>= 3:1` non-text
+contrast).
+
 ## Future light theme
 
 Not planned currently — product ships dark-only. If a light theme is requested later, derive it as a parallel token set (`background-light`, `surface-light`, etc.) rather than replacing dark values.
