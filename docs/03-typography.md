@@ -34,7 +34,7 @@ Always use the platform's native system font first — never ship a bundled web 
 
 ## macOS Repair Record scale
 
-The macOS app ([`platforms/macos.md`](platforms/macos.md)) uses native `SF Pro` and `SF Mono` (never a bundled web font) with sentence case, tabular numerals (`monospacedDigit()`) for aligned numeric values, and at most two weights (`Regular` 400 and `Semibold` 600), recorded in [`../tokens/macos.json`](../tokens/macos.json):
+The macOS app ([`platforms/macos.md`](platforms/macos.md)) uses native `SF Pro`, `SF Mono` and, for the single `status-headline` role, the system serif `New York` (never a bundled web font) with sentence case, tabular numerals (`monospacedDigit()`) for aligned numeric values, and at most two weights (`Regular` 400 and `Semibold` 600), recorded in [`../tokens/macos.json`](../tokens/macos.json):
 
 | Role | Size / Line height (pt) | Weight | Font |
 |---|---|---|---|

@@ -8,7 +8,7 @@
   - Single content column capped at `960pt` maximum width with `24pt` outer margins.
   - Native macOS titlebar and traffic-light placement preserved; no sidebar or tab bar.
   - Summary header and persistent primary action bar remain pinned/usable while the central repair record scrolls.
-  - Responsive repair-record rows: at content width `840pt` or wider, rows align 4 columns (`sequence`, `operation`, `effect`, `outcome`); below `840pt`, the `effect` description stacks below `operation` while retaining a trailing `outcome` column.
+  - Responsive repair-record rows: at content width `560pt` (`window.recordFourColumnMinWidth`) or wider, rows align 4 columns (`sequence`, `operation`, `effect`, `outcome`); below `560pt`, the `effect` description stacks below `operation` while retaining a trailing `outcome` column.
   - Record rows have a `44pt` minimum height (growing with content), square corners (`0pt` radius) separated by `1pt` `border` rules, and interactive controls use `6pt` corner radius. Native sheets retain native macOS framing.
 - **Windows exception:** the shipped Windows app is a compact single-task panel — default 520×600, minimum 440×520, one centered column capped at 420px, single-column checklist rows. See [`platforms/windows.md`](platforms/windows.md).
 

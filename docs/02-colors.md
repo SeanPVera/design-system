@@ -76,7 +76,7 @@ overlay for **The Repair Record** workspace with the **Signal** skin: warm
 graphite surfaces and one restrained amber accent, recorded in
 [`../tokens/macos.json`](../tokens/macos.json). The overlay is macOS-only and
 does not change Windows, website, or extension appearance. Every text and status
-role meets WCAG AA (`>= 4.5:1`) on all four surfaces, and the control boundary
+role meets WCAG AA (`>= 4.5:1`) on all six surfaces, and the control boundary
 meets `>= 3:1` (checked by `SignalPaletteTests` in the macOS app).
 
 | macOS token | Hex | Role |

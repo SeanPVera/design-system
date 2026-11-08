@@ -10,12 +10,12 @@ One main window: `900×760` pt by default, `720×640` pt minimum, with `24pt` ou
 
 | Region | Anatomy |
 |---|---|
-| **Preflight sidebar** (leading, `264pt`, `surface`) | `System checks` heading with an icon-only `Re-run checks` button. One row per live check: a status symbol (pass `checkmark.circle.fill`, warning `exclamationmark.triangle.fill`, blocking `xmark.octagon.fill`), the label (`label`) and the value (`metadata`, 2 lines max). Then the `System check details` link, the Zoom installation panel, and the `Support` links (`Activity log (n)`, `Export diagnostics…`, `Report a bug…`). |
+| **Preflight sidebar** (leading, `window.sidebarWidth` 264pt, `surface`) | `System checks` heading (re-running stays in the status summary's `Recheck`, so there is no duplicate control). One row per live check: a status symbol (pass `checkmark.circle.fill`, warning `exclamationmark.triangle.fill`, blocking `xmark.octagon.fill`), the label (`label`) and the value (`metadata`, 2 lines max). Then the `System check details` link, the Zoom installation panel, and the `Support` links (`Activity log (n)`, `Export diagnostics…`, `Report a bug…`). |
 | **Stage header** (pinned at the top of the main column) | Compact identity: the app icon at `identity.iconSize` (28pt, loaded from the shipped `AppIcon.png` so it is correct even when unbundled), then the title, version and Help. Status summary with a 3pt accent rule and the `status-headline` serif line. Then the stage action row (see States). |
-| **Record** (scrolling) | During a run only, the `Live activity` well. Then the ordered 9-step repair record (`validate`, `closeZoom`, `backup`, `network`, `resetData`, `dns`, `updaters`, `mediaAccess`, `launch`): `44pt` minimum rows separated by `1pt` `border` rules, 4 columns at `>= 840pt` content width and stacked below that. Then backup provenance with `Reveal Backup`. |
+| **Record** (scrolling) | During a run only, the `Live activity` well. Then the ordered 9-step repair record (`validate`, `closeZoom`, `backup`, `network`, `resetData`, `dns`, `updaters`, `mediaAccess`, `launch`): `44pt` minimum rows separated by `1pt` `border` rules, 4 columns at `>= 560pt` content width (`window.recordFourColumnMinWidth`, sized so the main column beside the sidebar qualifies at the default `900pt` window: 900 − 264 − 1 − 48 = 587) and stacked below that. Then backup provenance with `Reveal Backup`. |
 | **Guidance strip** (pinned at the bottom, `surface`) | One line saying what the actions will do, why they are unavailable, or the privileged-operation safety notice. |
 
-**Narrow windows (`< 880pt`):** the sidebar folds away. The Zoom panel moves to the top of the record, the support links move to a bar under the guidance strip, and check details stay available from the summary and the `System check details` sheet. No control is ever hidden.
+**Narrow windows (`< window.sidebarBreakpoint`, 880pt):** the sidebar folds away. The Zoom panel moves to the top of the record, the support links move to a bar under the guidance strip, and check details stay available from the summary and the `System check details` sheet. No control is ever hidden.
 
 ### States
 
@@ -24,15 +24,15 @@ The stage is derived from the existing workflow state. It never changes workflow
 | Stage | When | Stage action row | Record |
 |---|---|---|---|
 | **Ready** | idle | `Preview steps` (secondary, read-only), `Launch in sandbox` (secondary), and `Review repair…` (primary amber, default action, disabled while a check is blocking) | The plan for the 9 steps |
-| **Running** | any active step, or stopping | A determinate linear progress bar computed from step states (`Step n of 9 · <step>`; turns `warning` and reads "Stopping after the current step" while stopping), plus `Stop repair` / `Stop launch` / `Stopping…` (destructive) | The `Live activity` well (last 6 log lines in `mono` on `surface-recessed`, plus `Open full log`), then the live record |
-| **Results** | completed, completed with warnings, failed, stopped | Integrated retry: `Review repair again…` (primary, `arrow.clockwise`). It always reopens the repair review sheet first, never re-runs directly. The secondary actions stay available. | The finished record with per-step outcomes and backup provenance |
+| **Running** | any active step, or stopping | A determinate linear progress bar computed from step states (its accessibility value is `Step n of 9 · <step>`; the visible step text stays in the status summary; the bar turns `warning` and reads "Stopping after the current step" while stopping), plus `Stop repair` / `Stop launch` / `Stopping…` (destructive) | The `Live activity` well (last 6 log lines in `mono` on `surface-recessed`, plus `Open full log`), then the live record |
+| **Results** | completed, completed with warnings, failed, stopped | After a repair run: the integrated retry `Review repair again…` (primary, `arrow.clockwise`). After a preview or sandbox launch, no repair has run yet, so it stays `Review repair…` (`play.fill`). Either way it reopens the repair review sheet first, never re-runs directly. The secondary actions stay available. | The finished record with per-step outcomes and backup provenance |
 
 Only one primary (amber) control is visible at a time. Do not use oversized banners, large action cards, tab bars, demo or tabbed state switchers, decorative gradients, or glass effects.
 
 ### Motion
 
 - Only the status accent rule colour animates (`ease-out`, `motion.controlFeedbackMs`). Status text, logs and layout update immediately, per [`../07-motion.md`](../07-motion.md). The primary hover changes fill and halo radius only.
-- Progress moves only when step states change. There are no indeterminate spinners except the brief `Checking this Mac…` while preflight loads.
+- The progress bar moves only when step states change. Indeterminate native spinners are limited to three places: preflight loading (`Checking this Mac…`), the status summary glyph while a step runs, and the single running record row.
 - When `accessibilityReduceMotion` is on, all animations are removed.
 
 ### Accessibility

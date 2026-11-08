@@ -81,7 +81,9 @@
     "default": [900, 760],
     "minimum": [720, 640],
     "contentMaxWidth": 960,
-    "recordFourColumnMinWidth": 840,
+    "recordFourColumnMinWidth": 560,
+    "sidebarWidth": 264,
+    "sidebarBreakpoint": 880,
     "rowMinHeight": 44
   }
 }

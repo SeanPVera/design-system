@@ -437,20 +437,20 @@ The macOS utility ([`platforms/macos.md`](platforms/macos.md)) implements **The 
 - **Purpose:** Represents one of the 9 ordered repair operations (`validate`, `closeZoom`, `backup`, `network`, `resetData`, `dns`, `updaters`, `mediaAccess`, `launch`) across planned, live-running, and completed receipt states with stable identity and position.
 - **Tokens used:** `surface`, `surface-hover`, `surface-pressed`, `border`, `text-primary`, `text-secondary`, `success`, `warning`, `error`, `focus`, `label` (`13/18` Semibold), `body` (`14/20` Regular), `metadata` (`12/16` Regular), `mono` (`13/20` Regular), `window.rowMinHeight` (`44pt`), `radius.row` (`0pt`).
 - **Variants:**
-  - Wide layout (`>= 840pt` content width): 4 aligned columns — tabular sequence number (`01`–`09`), operation name, anticipated or actual effect, and trailing outcome status (symbol + word).
-  - Compact layout (`< 840pt` content width): effect text stacks below the operation name while retaining the leading sequence number and trailing outcome column.
+  - Wide layout (`>= window.recordFourColumnMinWidth`, 560pt content width): 4 aligned columns — tabular sequence number (`01`–`09`), operation name, anticipated or actual effect, and trailing outcome status (symbol + word).
+  - Compact layout (`< 560pt` content width): effect text stacks below the operation name while retaining the leading sequence number and trailing outcome column.
 - **States:** Planned, Running (single native indeterminate `ProgressView` + optional `Waiting for macOS administrator authorization…` or permission wait detail), Succeeded, Warning (auto-expanded or expandable with recovery instructions), Skipped (intentionally skipped with reason), Failed (expanded with retained-state boundary guidance), Interrupted (stopped while running; effect unverified), Unstarted (never reached after earlier stop/failure), Hover/Pressed/Focused when expandable.
-- **Accessibility:** Minimum `44pt` height, grows vertically without truncating warning/recovery copy to two lines; keyboard-focusable disclosure with `2pt` `focus` ring (`#FFB25C`) on `2pt` `background` gap; announces step sequence, title, effect, and outcome word.
+- **Accessibility:** Minimum `44pt` height, grows vertically without truncating warning/recovery copy to two lines; keyboard-focusable disclosure with `2pt` `focus` ring on `2pt` `background` gap; announces step sequence, title, effect, and outcome word.
 - **Platform notes:** Square (`0pt` radius), separated by `1pt` `border` horizontal rules; disclosure uses `200ms` `ease-in-out` unless Reduce Motion is enabled.
 
 ### Stage action row (macOS Signal)
 - **Purpose:** Holds the workflow actions for the current stage, pinned in the stage header under the status summary so they never scroll out of reach. Disabled reasons and safety notices sit in the pinned guidance strip. Backup provenance (`Reveal Backup`) follows the record. Support sheet triggers live in the preflight sidebar, or in a bar under the guidance strip in narrow windows.
-- **Tokens used:** `primary` (`#FF9A3C`), `primary-hover` (`#FFAD5C`), `primary-pressed` (`#E8842C`, also the primary button stroke), `on-primary` (`#1A1206`), `primary-glow` with `elevation.primaryGlowRadius` / `primaryGlowRadiusHover`, `border-control` (`#7A746D`), `surface-hover`, `surface-pressed`, `text-primary`, `text-secondary`, `focus` (`#FFB25C`), `warning`, `button` (`14/20` Semibold), `metadata` (`12/16`), `radius.control` (`6pt`), `spacing.8`, `spacing.16`.
+- **Tokens used:** `primary`, `primary-hover`, `primary-pressed` (also the primary button stroke), `on-primary`, `primary-glow` with `elevation.primaryGlowRadius` / `primaryGlowRadiusHover`, `border-control`, `surface-hover`, `surface-pressed`, `text-primary`, `text-secondary`, `focus`, `warning`, `button` (`14/20` Semibold), `metadata` (`12/16`), `radius.control` (`6pt`), `spacing.8`, `spacing.16`.
 - **Variants:**
   - Ready: `Preview steps` and `Launch in sandbox` (secondary), plus `Review repair…` (primary, default action).
   - Running: a determinate progress strip (`Step n of 9 · <step>`) with `Stop repair` / `Stop launch`, or a disabled `Stopping…`.
   - Results: the secondary actions plus the integrated retry `Review repair again…`, which reopens the review sheet.
-- **States:** Default, hover (fill change only), pressed, focused (`2pt` `focus` ring), and disabled (native trait plus an explicit reason in the guidance strip).
+- **States:** Default, hover (fill and, for primary, halo radius `elevation.primaryGlowRadiusHover`), pressed, focused (`2pt` `focus` ring), and disabled (native trait plus an explicit reason in the guidance strip).
 - **Accessibility:** Full Keyboard Access order. Only one filled `primary` button per context. Primary fills are `>= 5.2:1` against every surface, and secondary controls use `border-control` for a `>= 3:1` boundary. The progress bar exposes its label as its value.
 - **Platform notes:** See [`platforms/macos.md`](platforms/macos.md) § Workspace composition.
 
@@ -472,7 +472,7 @@ The macOS utility ([`platforms/macos.md`](platforms/macos.md)) implements **The 
 
 ### Repair review sheet
 - **Purpose:** Plan-driven confirmation sheet presented by `Review repair…` that previews all 9 operations in execution order and requires deliberate `Start Repair` activation before any mutation.
-- **Tokens used:** `surface-modal` (`#24232A` on macOS), `surface`, `border`, `border-control`, `primary`, `text-primary`, `text-secondary`, `warning`, `section-heading` (`16/22` Semibold), `label` (`13/18` Semibold), `body` (`14/20` Regular), `mono` (`13/20` Regular), `metadata` (`12/16` Regular), `radius.control` (`6pt`), `spacing.12`, `spacing.16`, `spacing.24`.
+- **Tokens used:** `surface-modal`, `surface`, `border`, `border-control`, `primary`, `text-primary`, `text-secondary`, `warning`, `section-heading` (`16/22` Semibold), `label` (`13/18` Semibold), `body` (`14/20` Regular), `mono` (`13/20` Regular), `metadata` (`12/16` Regular), `radius.control` (`6pt`), `spacing.12`, `spacing.16`, `spacing.24`.
 - **Variants:** Standard plan review; Plan-changed revalidation notice (when target or network conditions changed before execution and require renewed approval).
 - **States:** Default, Paths disclosure expanded (showing exact backed-up and cleared paths, plus note that deleted local logs are excluded from the backup), Cancel (`Esc`), Start Repair (`primary` button).
 - **Accessibility:** Native macOS `.sheet` framing and focus trap; `Esc` cancels; restores focus on dismissal; lists all 9 steps with their specific anticipated effects (leave active meeting warning, backup/reset paths, actual network strategy & interface interruption, admin prompts for network/DNS, session-only updater unload, `1132 Fixer` camera/mic grant ownership, and sandbox launch limits).
@@ -480,7 +480,7 @@ The macOS utility ([`platforms/macos.md`](platforms/macos.md)) implements **The 
 
 ### Log viewer
 - **Purpose:** On-demand sheet presenting the session Activity Log (up to 5,000 entries with stable sequence IDs) without cluttering the main workspace when empty.
-- **Tokens used:** `surface-modal`, `surface`, `border`, `border-control`, `text-primary`, `text-secondary`, `section-heading` (`16/22` Semibold), `mono` (`13/20` Regular), `metadata` (`12/16` Regular), `radius.control` (`6pt`), `spacing.8`, `spacing.12`, `spacing.16`.
+- **Tokens used:** `surface-modal`, `surface`, `surface-recessed` (log body), `border`, `border-control`, `text-primary`, `text-secondary`, `section-heading` (`16/22` Semibold), `mono` (`13/20` Regular), `metadata` (`12/16` Regular), `radius.control` (`6pt`), `spacing.8`, `spacing.12`, `spacing.16`.
 - **Variants:** Empty state (*"No activity recorded in this session."*), Populated scrolling log with `Follow latest` toggle, `Copy`, `Clear`, and `Close`.
 - **States:** Following latest (auto-scrolls on new sequence numbers even after the 5,000-entry ring buffer is full), Paused (when user scrolls up or toggles off `Follow latest`), Copied confirmation.
 - **Accessibility:** Monospaced selectable log lines; explicit button labels; clearing display logs never erases structured repair status, backup provenance, or readiness state.
