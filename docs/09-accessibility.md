@@ -10,8 +10,8 @@ Status color alone is never sufficient — every `success`/`warning`/`error` sta
 
 - Every interactive element (buttons, inputs, disclosures, links) must be reachable via Tab in visual order (Full Keyboard Access).
 - `Enter`/`Space` activates buttons; `Esc` closes modals/sheets (Repair review, Activity Log, System check details, Report a bug). In multiline text editors, `Enter` inserts a newline and must never unexpectedly start or send an operation.
-- Focus ring: 2px solid `focus` (`#8DBCF2` on macOS, `#71AFFF` on Windows, or `primary` on web), offset with a 2px `background` gap, visible on every focusable element — never suppressed without an accessible replacement.
-- Primary buttons and interactive controls on macOS pair their fill with `border-control` (`#718399`, `>= 3:1` against dark surfaces) so boundaries remain clear in both standard and increased-contrast modes.
+- Focus ring: 2px solid `focus` (`#FFB25C` on macOS, `#71AFFF` on Windows, or `primary` on web), offset with a 2px `background` gap, visible on every focusable element — never suppressed without an accessible replacement.
+- Primary buttons and interactive controls on macOS pair their fill with `border-control` (`#7A746D`, `>= 3:1` against dark surfaces) so boundaries remain clear in both standard and increased-contrast modes.
 
 ## Platform-specific notes
 

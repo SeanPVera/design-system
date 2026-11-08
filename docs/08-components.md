@@ -439,19 +439,19 @@ The macOS utility ([`platforms/macos.md`](platforms/macos.md)) implements **The 
   - Wide layout (`>= 840pt` content width): 4 aligned columns — tabular sequence number (`01`–`09`), operation name, anticipated or actual effect, and trailing outcome status (symbol + word).
   - Compact layout (`< 840pt` content width): effect text stacks below the operation name while retaining the leading sequence number and trailing outcome column.
 - **States:** Planned, Running (single native indeterminate `ProgressView` + optional `Waiting for macOS administrator authorization…` or permission wait detail), Succeeded, Warning (auto-expanded or expandable with recovery instructions), Skipped (intentionally skipped with reason), Failed (expanded with retained-state boundary guidance), Interrupted (stopped while running; effect unverified), Unstarted (never reached after earlier stop/failure), Hover/Pressed/Focused when expandable.
-- **Accessibility:** Minimum `44pt` height, grows vertically without truncating warning/recovery copy to two lines; keyboard-focusable disclosure with `2pt` `focus` ring (`#8DBCF2`) on `2pt` `background` gap; announces step sequence, title, effect, and outcome word.
+- **Accessibility:** Minimum `44pt` height, grows vertically without truncating warning/recovery copy to two lines; keyboard-focusable disclosure with `2pt` `focus` ring (`#FFB25C`) on `2pt` `background` gap; announces step sequence, title, effect, and outcome word.
 - **Platform notes:** Square (`0pt` radius), separated by `1pt` `border` horizontal rules; disclosure uses `200ms` `ease-in-out` unless Reduce Motion is enabled.
 
-### Persistent action area
-- **Purpose:** Houses the primary and secondary workflow actions (`Run checks`, `Review repair…`, `Stop repair` / `Stopping…`), disabled-state explanation, backup provenance (`Backup created for this repair` vs `Previous backup available` + `Reveal Backup`), and support sheet triggers (`System check details`, `Activity Log`, `Export Diagnostics`, `Report a Bug`).
-- **Tokens used:** `surface`, `background`, `border`, `border-control` (`#718399`), `primary` (`#235FA8`), `primary-hover` (`#286AB5`), `primary-pressed` (`#1D508D`), `surface-hover` (`#26344A`), `surface-pressed` (`#1B2636`), `text-primary`, `text-secondary`, `focus`, `button` (`14/20` Semibold), `body` (`14/20` Regular), `metadata` (`12/16` Regular), `radius.control` (`6pt`), `spacing.8`, `spacing.12`, `spacing.16`.
+### Stage action row (macOS Signal)
+- **Purpose:** Holds the workflow actions for the current stage, pinned in the stage header under the status summary so they never scroll out of reach. Disabled reasons and safety notices sit in the pinned guidance strip. Backup provenance (`Reveal Backup`) follows the record. Support sheet triggers live in the preflight sidebar, or in a bar under the guidance strip in narrow windows.
+- **Tokens used:** `primary` (`#FF9A3C`), `primary-hover` (`#FFAD5C`), `primary-pressed` (`#E8842C`), `on-primary` (`#1A1206`), `border-control` (`#7A746D`), `surface-hover`, `surface-pressed`, `text-primary`, `text-secondary`, `focus` (`#FFB25C`), `warning`, `button` (`14/20` Semibold), `metadata` (`12/16`), `radius.control` (`6pt`), `spacing.8`, `spacing.16`.
 - **Variants:**
-  - Idle / Ready / Completed: Secondary `Run checks` button (*"Checks only; no repair changes."*) + Primary filled `Review repair…` button (or disabled with adjacent reason text).
-  - Running checks: Disabled primary action + active status indicator.
-  - Running repair: `Stop repair` control (or disabled `Stopping…` while waiting for privileged process exit before releasing ownership).
-- **States:** Default, hover (`150ms` `ease-out`), pressed, focused (`2pt` `focus` ring with `2pt` `background` gap), disabled (native disabled trait exposed + readable `text-secondary` label + explicit reason text).
-- **Accessibility:** Full Keyboard Access Tab order; only one filled `primary` button per context; `border-control` (`#718399`) ensures `>= 3:1` boundary contrast on primary and secondary controls.
-- **Platform notes:** Pinned below the scrollable record so primary actions never scroll out of reach.
+  - Ready: `Preview steps` and `Launch in sandbox` (secondary), plus `Review repair…` (primary, default action).
+  - Running: a determinate progress strip (`Step n of 9 · <step>`) with `Stop repair` / `Stop launch`, or a disabled `Stopping…`.
+  - Results: the secondary actions plus the integrated retry `Review repair again…`, which reopens the review sheet.
+- **States:** Default, hover (fill change only), pressed, focused (`2pt` `focus` ring), and disabled (native trait plus an explicit reason in the guidance strip).
+- **Accessibility:** Full Keyboard Access order. Only one filled `primary` button per context. `border-control` gives `>= 3:1` boundary contrast. The progress bar exposes its label as its value.
+- **Platform notes:** See [`platforms/macos.md`](platforms/macos.md) § Workspace composition.
 
 ### Outcome notice
 - **Purpose:** Contextual inline banner for partial-state recovery guidance, post-launch sign-in verification instructions, plan-revalidation notices, or diagnostics export confirmation/errors.
@@ -471,7 +471,7 @@ The macOS utility ([`platforms/macos.md`](platforms/macos.md)) implements **The 
 
 ### Repair review sheet
 - **Purpose:** Plan-driven confirmation sheet presented by `Review repair…` that previews all 9 operations in execution order and requires deliberate `Start Repair` activation before any mutation.
-- **Tokens used:** `surface-modal` (`#2A2530`), `surface`, `border`, `border-control`, `primary`, `text-primary`, `text-secondary`, `warning`, `section-heading` (`16/22` Semibold), `label` (`13/18` Semibold), `body` (`14/20` Regular), `mono` (`13/20` Regular), `metadata` (`12/16` Regular), `radius.control` (`6pt`), `spacing.12`, `spacing.16`, `spacing.24`.
+- **Tokens used:** `surface-modal` (`#24232A` on macOS), `surface`, `border`, `border-control`, `primary`, `text-primary`, `text-secondary`, `warning`, `section-heading` (`16/22` Semibold), `label` (`13/18` Semibold), `body` (`14/20` Regular), `mono` (`13/20` Regular), `metadata` (`12/16` Regular), `radius.control` (`6pt`), `spacing.12`, `spacing.16`, `spacing.24`.
 - **Variants:** Standard plan review; Plan-changed revalidation notice (when target or network conditions changed before execution and require renewed approval).
 - **States:** Default, Paths disclosure expanded (showing exact backed-up and cleared paths, plus note that deleted local logs are excluded from the backup), Cancel (`Esc`), Start Repair (`primary` button).
 - **Accessibility:** Native macOS `.sheet` framing and focus trap; `Esc` cancels; restores focus on dismissal; lists all 9 steps with their specific anticipated effects (leave active meeting warning, backup/reset paths, actual network strategy & interface interruption, admin prompts for network/DNS, session-only updater unload, `1132 Fixer` camera/mic grant ownership, and sandbox launch limits).
@@ -493,3 +493,6 @@ The macOS utility ([`platforms/macos.md`](platforms/macos.md)) implements **The 
 - **Accessibility:** Explicit labels for required Message (`TextEditor` where `Enter` inserts a newline and never submits), optional Email or Telegram contact, capture timestamp, byte size, truncation badge, and privacy disclosure explaining that home paths are shortened to `~` while activity output may still contain network service names and addresses.
 - **Platform notes:** Never silently truncates pasted message text; never exposes internal environment variable names in primary user-facing error copy.
 
+## macOS Signal workspace components
+
+The macOS app adds native components for the preflight sidebar (check rows), the run progress strip, the live activity well and the integrated results retry. Their anatomy, states, motion and accessibility are specified in [`platforms/macos.md`](platforms/macos.md) § Workspace composition.

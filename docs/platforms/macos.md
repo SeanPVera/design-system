@@ -1,23 +1,51 @@
 # macOS
 
-Primary native utility platform. The macOS app (`1132 Fixer`) implements **The Repair Record** single-workspace design specified below and in [`../tokens/macos.json`](../tokens/macos.json). Historical screenshots (`screenshots/mac/main.png`, `screenshots/mac/report-bug.png`) record the earlier card-based baseline.
+Primary native utility platform. The macOS app (`1132 Fixer`) implements **The Repair Record** workspace in the **Signal** skin (graphite and amber), as specified below and in [`../tokens/macos.json`](../tokens/macos.json). Historical screenshots (`screenshots/mac/main.png`, `screenshots/mac/report-bug.png`) record the earlier card-based baseline, not the current design.
 
-## Workspace composition ("The Repair Record")
+## Workspace composition ("The Repair Record", Signal)
 
-One main window (`900×760` pt default, `720×640` pt minimum, single content column capped at `960pt` with `24pt` outer margins) with supporting native sheets, ordered vertically:
-1. **Compact native identity and Help access** (`16/22` Semibold title, version badge, update availability, Help menu/popover with GitHub and Website links).
-2. **Readiness summary or current repair outcome** (`24/30` Semibold heading + contextual summary, pinned above scrolling records).
-3. **Selected Zoom installation** (`Choose…`, conditional `Use default`, off-UI-thread `Verifying Zoom…`, selectable full path, and local rejection notice).
-4. **Ordered 9-step repair record** (`validate`, `closeZoom`, `backup`, `network`, `resetData`, `dns`, `updaters`, `mediaAccess`, `launch`) with expandable detail, `44pt` minimum row height, `0pt` row corner radius separated by `1pt` `border` rules, and responsive 4-column layout at `>= 840pt` content width (stacking effect below operation below `840pt`).
-5. **Persistent action area** (`Run checks` secondary with *"Checks only; no repair changes."*, `Review repair…` primary with disabled reason when blocked, `Stop repair` / `Stopping…` during active repair, and per-run backup provenance with `Reveal Backup`).
-6. **Support access bar** (`System check details`, `Activity Log`, `Export Diagnostics`, and `Report a Bug`).
+One main window: `900×760` pt by default, `720×640` pt minimum, with `24pt` outer margins and the main column capped at `960pt`.
 
-Do not use oversized identity banners, large action cards, static compatibility pills, a permanently expanded empty log panel, sidebars, tab bars, decorative gradients, or glass effects.
+### Regions
+
+| Region | Anatomy |
+|---|---|
+| **Preflight sidebar** (leading, `264pt`, `surface`) | `System checks` heading with an icon-only `Re-run checks` button. One row per live check: a status symbol (pass `checkmark.circle.fill`, warning `exclamationmark.triangle.fill`, blocking `xmark.octagon.fill`), the label (`label`) and the value (`metadata`, 2 lines max). Then the `System check details` link, the Zoom installation panel, and the `Support` links (`Activity log (n)`, `Export diagnostics…`, `Report a bug…`). |
+| **Stage header** (pinned at the top of the main column) | Compact identity (app icon at 28pt, title, version, Help). Status summary with a 3pt accent rule and the `status-headline` serif line. Then the stage action row (see States). |
+| **Record** (scrolling) | During a run only, the `Live activity` well. Then the ordered 9-step repair record (`validate`, `closeZoom`, `backup`, `network`, `resetData`, `dns`, `updaters`, `mediaAccess`, `launch`): `44pt` minimum rows separated by `1pt` `border` rules, 4 columns at `>= 840pt` content width and stacked below that. Then backup provenance with `Reveal Backup`. |
+| **Guidance strip** (pinned at the bottom, `surface`) | One line saying what the actions will do, why they are unavailable, or the privileged-operation safety notice. |
+
+**Narrow windows (`< 880pt`):** the sidebar folds away. The Zoom panel moves to the top of the record, the support links move to a bar under the guidance strip, and check details stay available from the summary and the `System check details` sheet. No control is ever hidden.
+
+### States
+
+The stage is derived from the existing workflow state. It never changes workflow logic.
+
+| Stage | When | Stage action row | Record |
+|---|---|---|---|
+| **Ready** | idle | `Preview steps` (secondary, read-only), `Launch in sandbox` (secondary), and `Review repair…` (primary amber, default action, disabled while a check is blocking) | The plan for the 9 steps |
+| **Running** | any active step, or stopping | A determinate linear progress bar computed from step states (`Step n of 9 · <step>`; turns `warning` and reads "Stopping after the current step" while stopping), plus `Stop repair` / `Stop launch` / `Stopping…` (destructive) | The `Live activity` well (last 6 log lines in `mono` on `surface-recessed`, plus `Open full log`), then the live record |
+| **Results** | completed, completed with warnings, failed, stopped | Integrated retry: `Review repair again…` (primary, `arrow.clockwise`). It always reopens the repair review sheet first, never re-runs directly. The secondary actions stay available. | The finished record with per-step outcomes and backup provenance |
+
+Only one primary (amber) control is visible at a time. Do not use oversized banners, large action cards, tab bars, demo or tabbed state switchers, decorative gradients, or glass effects.
+
+### Motion
+
+- Status tone changes animate with `ease-out` at the disclosure duration (`Theme.Motion.disclosureDuration`). The primary hover changes fill only.
+- Progress moves only when step states change. There are no indeterminate spinners except the brief `Checking this Mac…` while preflight loads.
+- When `accessibilityReduceMotion` is on, all animations are removed.
+
+### Accessibility
+
+- Each check row is one accessibility element with the value `Passed`, `Warning` or `Blocking`.
+- The progress bar exposes its label as its accessibility value.
+- Icon-only buttons carry labels and help text.
+- Colour is never the only signal: every status pairs a symbol with text.
 
 ## Chrome
 
 - **Native titlebar** — preserve the standard macOS window titlebar and traffic-light controls.
-- **Native menus & sheets** — place GitHub and Website in the macOS `Help` menu (as well as compact in-window Help access) and use native `.sheet` presentation (`surface-modal` `#2A2530`) for repair review, system check details, activity log, and bug reporting.
+- **Native menus & sheets** — place GitHub and Website in the macOS `Help` menu (as well as compact in-window Help access) and use native `.sheet` presentation (`surface-modal` `#24232A`) for repair review, system check details, activity log, and bug reporting.
 
 ## Tokens & static Swift mirror
 
