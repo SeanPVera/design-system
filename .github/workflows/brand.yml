@@ -21,3 +21,7 @@ jobs:
       - name: Validate token JSON
         run: |
           for f in tokens/*.json; do python3 -m json.tool "$f" >/dev/null || { echo "Invalid JSON: $f"; exit 1; }; done
+      - name: Test consumer resolution
+        run: |
+          bash -n scripts/resolve-sync-consumers.sh
+          bash scripts/tests/resolve-sync-consumers.test.sh
