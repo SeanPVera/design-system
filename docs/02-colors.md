@@ -72,35 +72,39 @@ text. White on `primary` is 4.0:1, so `primary` fills carry 14px/600 labels
 ## macOS shipped palette
 
 The macOS app ([`platforms/macos.md`](platforms/macos.md)) ships a dedicated
-overlay for **The Repair Record** workspace, recorded in
-[`../tokens/macos.json`](../tokens/macos.json). It reuses the canonical
-`background`, `surface`, `surface-modal`, `text-primary`, `text-secondary`,
-`border`, `success`, `warning`, `overlay`, and `gradient-brand-*` tokens while
-providing explicit interactive, control-boundary, and contrast-corrected
-roles so small text Meets WCAG AA (`>= 4.5:1`) and non-text control boundaries
-meet `>= 3:1` against dark surfaces withoutchanging Windows, website, or
-extension appearance.
+overlay for **The Repair Record** workspace with the **Signal** skin: warm
+graphite surfaces and one restrained amber accent, recorded in
+[`../tokens/macos.json`](../tokens/macos.json). The overlay is macOS-only and
+does not change Windows, website, or extension appearance. Every text and status
+role meets WCAG AA (`>= 4.5:1`) on all six surfaces, and the control boundary
+meets `>= 3:1` (checked by `SignalPaletteTests` in the macOS app).
 
 | macOS token | Hex | Role |
 |---|---|---|
-| `background` | `#0F1724` | Main window background |
-| `surface` | `#202B3D` | Record rows, panels, secondary surfaces |
-| `surface-modal` | `#2A2530` | Sheets and modal surfaces |
-| `surface-hover` / `surface-pressed` | `#26344A` / `#1B2636` | Row and secondary control hover / pressed fills |
-| `text-primary` / `text-secondary` | `#F5F7FA` / `#9AA5B4` | Primary and secondary copy |
-| `border` / `border-control` | `#33415A` / `#718399` | Structural rule dividers / interactive control & primary button boundary |
-| `primary` / `primary-hover` / `primary-pressed` | `#235FA8` / `#286AB5` / `#1D508D` | Filled primary action (one per context) |
-| `link` / `focus` | `#8DBCF2` | Inline links and 2pt focus ring (with 2pt `background` gap) |
-| `success` / `warning` / `error` | `#3CCF6E` / `#FFB547` / `#FF7875` | Semantic status only (always paired with symbol + text) |
-| `overlay` | `rgba(15,23,36,0.72)` | Modal scrim |
+| `background` | `#121214` | Main window background |
+| `surface` | `#1C1B20` | Record rows, panels, secondary surfaces |
+| `surface-modal` | `#24232A` | Sheets and modal surfaces |
+| `surface-hover` / `surface-pressed` | `#2B2A31` / `#17161A` | Row and secondary control hover / pressed fills |
+| `surface-recessed` | `#0E0E10` | Recessed wells (log body) |
+| `text-primary` / `text-secondary` | `#F4F1EC` / `#A9A49D` | Primary and secondary copy |
+| `border` / `border-control` | `#34323A` / `#7A746D` | Structural rule dividers / interactive control boundary |
+| `primary` / `primary-hover` / `primary-pressed` | `#FF9A3C` / `#FFAD5C` / `#E8842C` | Amber fill for the one primary action per context |
+| `on-primary` | `#1A1206` | Ink on amber fills (`>= 6.8:1` on every fill state) |
+| `link` / `focus` | `#FFB25C` | Inline links, active-status text and 2pt focus ring |
+| `success` / `warning` / `error` | `#3DDC97` / `#FFE14D` / `#FF7A85` | Semantic status only (always paired with symbol + text). `warning` sits at a yellow hue (about 50°) so it reads differently from the amber accent (about 30°). |
+| `primary-glow` | `rgba(255,154,60,0.28)` | Static halo on the primary button only (radius `elevation.primaryGlowRadius` 6, or `primaryGlowRadiusHover` 10 on hover) |
+| `overlay` | `rgba(18,18,20,0.72)` | Modal scrim |
 | `gradient-brand-start` / `gradient-brand-end` | `#FFD24C` / `#E8552A` | Approved brand wordmark / icon asset only |
 
-Contrast notes: `primary` (`#235FA8`) with `text-primary` (`#F5F7FA`) and
-`error` (`#FF7875`) on `background`/`surface` correct small-text contrast
-defects from the base palette (`>= 4.5:1`). Because dark `primary` fill alone
-has low boundary contrast against `surface`, primary buttons and interactive
-controls also pair with `border-control` (`#718399`, `>= 3:1` non-text
-contrast).
+Usage notes: amber is reserved for the primary action, focus, links and the
+"active" status accent rule. Never use it for warnings, and never tint large surfaces
+with it. Primary fills reach `>= 5.2:1` against every surface, so the primary button
+keeps its boundary without a `border-control` stroke; it strokes with
+`primary-pressed`. `focus` is close to the amber fills (`1.03`–`1.18:1`), so the 2pt
+`background` gap between a primary button and its focus ring is mandatory, not
+decorative. The primary fill may
+carry a soft static amber halo; only its hover change animates, and not under
+Reduce Motion.
 
 ## Future light theme
 

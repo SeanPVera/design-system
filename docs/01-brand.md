@@ -47,3 +47,7 @@ Use for: in-product UI chrome only (window header, menu items). Never use the fu
 ## Open dependency
 
 No dedicated wordmark-only (text, no gear) asset exists yet. If a text-only lockup is needed (e.g. narrow horizontal placements), it must be requested from brand — do not fabricate one.
+
+## Platform identity: macOS
+
+The macOS app intentionally carries its own identity: the graphite and amber Signal palette, and a minimal amber reset-mark icon (`assets/exports/macos/AppIcon.png`, sources in `assets/source/macos/`). The canonical palette, Windows and the website stay blue, and the cross-platform master icon is unchanged. Any other platform adopting amber or the new mark is a separate brand decision.
