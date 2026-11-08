@@ -418,10 +418,11 @@ The macOS utility ([`platforms/macos.md`](platforms/macos.md)) implements **The 
 
 ### Readiness summary
 - **Purpose:** Answers whether this Mac can attempt the repair, or summarizes the active/completed repair outcome at the top of the workspace while retaining prior repair receipt timestamps when checks are rerun.
-- **Tokens used:** `surface`, `border`, `text-primary`, `text-secondary`, `success`, `warning`, `error`, `main-outcome` (`24/30` Semibold), `body` (`14/20` Regular), `metadata` (`12/16` Regular), `spacing.16`, `spacing.12`, `spacing.8`.
+- **Tokens used:** `surface`, `border`, `text-primary`, `text-secondary`, `success`, `warning`, `error`, `status-headline` (`26/32` Semibold, serif New York), `body` (`14/20` Regular), `metadata` (`12/16` Regular), `spacing.16`, `spacing.12`, `spacing.8`.
 - **Variants:** Checking (`Checking readiness…`), Ready (`Ready to repair`), Ready with limitations (`Ready with limitations`), Blocked (`Checks complete. Repair blocked.`), Active execution (`Repairing Zoom…`, `Stopping…`), Completed outcomes (`Zoom launched`, `Zoom launched · 1 warning`, `Zoom launch could not be confirmed`, `Repair stopped`, `Repair failed`).
 - **States:** Default, loading (native indeterminate spinner), warning, error, receipt-preserved notice when new checks run after a completed repair.
 - **Accessibility:** Combined header element announcing status symbol + main outcome heading + explanatory subtitle; never relies on color alone.
+- **Status accent rule:** a leading capsule `status.accentRuleWidth` (3pt) wide, coloured by tone: neutral `text-secondary`, active `link`, success `success`, warning `warning`, error `error`. Only the rule colour animates (`motion.controlFeedbackMs`, ease-out, removed under Reduce Motion). The heading, detail text and layout update immediately.
 - **Platform notes:** Remains visible/usable above the scrolling operation record.
 
 ### Check row
@@ -444,13 +445,13 @@ The macOS utility ([`platforms/macos.md`](platforms/macos.md)) implements **The 
 
 ### Stage action row (macOS Signal)
 - **Purpose:** Holds the workflow actions for the current stage, pinned in the stage header under the status summary so they never scroll out of reach. Disabled reasons and safety notices sit in the pinned guidance strip. Backup provenance (`Reveal Backup`) follows the record. Support sheet triggers live in the preflight sidebar, or in a bar under the guidance strip in narrow windows.
-- **Tokens used:** `primary` (`#FF9A3C`), `primary-hover` (`#FFAD5C`), `primary-pressed` (`#E8842C`), `on-primary` (`#1A1206`), `border-control` (`#7A746D`), `surface-hover`, `surface-pressed`, `text-primary`, `text-secondary`, `focus` (`#FFB25C`), `warning`, `button` (`14/20` Semibold), `metadata` (`12/16`), `radius.control` (`6pt`), `spacing.8`, `spacing.16`.
+- **Tokens used:** `primary` (`#FF9A3C`), `primary-hover` (`#FFAD5C`), `primary-pressed` (`#E8842C`, also the primary button stroke), `on-primary` (`#1A1206`), `primary-glow` with `elevation.primaryGlowRadius` / `primaryGlowRadiusHover`, `border-control` (`#7A746D`), `surface-hover`, `surface-pressed`, `text-primary`, `text-secondary`, `focus` (`#FFB25C`), `warning`, `button` (`14/20` Semibold), `metadata` (`12/16`), `radius.control` (`6pt`), `spacing.8`, `spacing.16`.
 - **Variants:**
   - Ready: `Preview steps` and `Launch in sandbox` (secondary), plus `Review repair…` (primary, default action).
   - Running: a determinate progress strip (`Step n of 9 · <step>`) with `Stop repair` / `Stop launch`, or a disabled `Stopping…`.
   - Results: the secondary actions plus the integrated retry `Review repair again…`, which reopens the review sheet.
 - **States:** Default, hover (fill change only), pressed, focused (`2pt` `focus` ring), and disabled (native trait plus an explicit reason in the guidance strip).
-- **Accessibility:** Full Keyboard Access order. Only one filled `primary` button per context. `border-control` gives `>= 3:1` boundary contrast. The progress bar exposes its label as its value.
+- **Accessibility:** Full Keyboard Access order. Only one filled `primary` button per context. Primary fills are `>= 5.2:1` against every surface, and secondary controls use `border-control` for a `>= 3:1` boundary. The progress bar exposes its label as its value.
 - **Platform notes:** See [`platforms/macos.md`](platforms/macos.md) § Workspace composition.
 
 ### Outcome notice

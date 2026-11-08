@@ -38,7 +38,6 @@ The macOS app ([`platforms/macos.md`](platforms/macos.md)) uses native `SF Pro` 
 
 | Role | Size / Line height (pt) | Weight | Font |
 |---|---|---|---|
-| `main-outcome` | `24 / 30` | Semibold (`600`) | `SF Pro` |
 | `compact-identity` | `16 / 22` | Semibold (`600`) | `SF Pro` |
 | `section-heading` | `16 / 22` | Semibold (`600`) | `SF Pro` |
 | `body` (and substantive warnings / recovery instructions) | `14 / 20` | Regular (`400`) | `SF Pro` |

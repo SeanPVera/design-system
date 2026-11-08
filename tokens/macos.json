@@ -18,9 +18,10 @@
     "link": "#FFB25C",
     "focus": "#FFB25C",
     "success": "#3DDC97",
-    "warning": "#FFC24B",
+    "warning": "#FFE14D",
     "error": "#FF7A85",
     "overlay": "rgba(18,18,20,0.72)",
+    "primary-glow": "rgba(255,154,60,0.28)",
     "gradient-brand-start": "#FFD24C",
     "gradient-brand-end": "#E8552A"
   },
@@ -29,7 +30,6 @@
     "font-family-mono": "SF Mono",
     "font-family-serif": "New York",
     "roles": {
-      "main-outcome": { "size": 24, "lineHeight": 30, "weight": 600, "family": "sans" },
       "compact-identity": { "size": 16, "lineHeight": 22, "weight": 600, "family": "sans" },
       "section-heading": { "size": 16, "lineHeight": 22, "weight": 600, "family": "sans" },
       "body": { "size": 14, "lineHeight": 20, "weight": 400, "family": "sans" },
@@ -58,6 +58,16 @@
   "radius": {
     "row": 0,
     "control": 6
+  },
+  "elevation": {
+    "primaryGlowRadius": 6,
+    "primaryGlowRadiusHover": 10
+  },
+  "status": {
+    "accentRuleWidth": 3
+  },
+  "identity": {
+    "iconSize": 28
   },
   "focus": {
     "ringWidth": 2,

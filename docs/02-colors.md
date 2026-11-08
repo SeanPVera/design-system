@@ -91,12 +91,18 @@ meets `>= 3:1` (checked by `SignalPaletteTests` in the macOS app).
 | `primary` / `primary-hover` / `primary-pressed` | `#FF9A3C` / `#FFAD5C` / `#E8842C` | Amber fill for the one primary action per context |
 | `on-primary` | `#1A1206` | Ink on amber fills (`>= 6.8:1` on every fill state) |
 | `link` / `focus` | `#FFB25C` | Inline links, active-status text and 2pt focus ring |
-| `success` / `warning` / `error` | `#3DDC97` / `#FFC24B` / `#FF7A85` | Semantic status only (always paired with symbol + text) |
+| `success` / `warning` / `error` | `#3DDC97` / `#FFE14D` / `#FF7A85` | Semantic status only (always paired with symbol + text). `warning` sits at a yellow hue (about 50°) so it reads differently from the amber accent (about 30°). |
+| `primary-glow` | `rgba(255,154,60,0.28)` | Static halo on the primary button only (radius `elevation.primaryGlowRadius` 6, or `primaryGlowRadiusHover` 10 on hover) |
 | `overlay` | `rgba(18,18,20,0.72)` | Modal scrim |
 | `gradient-brand-start` / `gradient-brand-end` | `#FFD24C` / `#E8552A` | Approved brand wordmark / icon asset only |
 
 Usage notes: amber is reserved for the primary action, focus, links and the
-status accent rule; never tint large surfaces with it. The primary fill may
+"active" status accent rule. Never use it for warnings, and never tint large surfaces
+with it. Primary fills reach `>= 5.2:1` against every surface, so the primary button
+keeps its boundary without a `border-control` stroke; it strokes with
+`primary-pressed`. `focus` is close to the amber fills (`1.03`–`1.18:1`), so the 2pt
+`background` gap between a primary button and its focus ring is mandatory, not
+decorative. The primary fill may
 carry a soft static amber halo; only its hover change animates, and not under
 Reduce Motion.
 

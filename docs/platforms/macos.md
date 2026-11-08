@@ -11,7 +11,7 @@ One main window: `900×760` pt by default, `720×640` pt minimum, with `24pt` ou
 | Region | Anatomy |
 |---|---|
 | **Preflight sidebar** (leading, `264pt`, `surface`) | `System checks` heading with an icon-only `Re-run checks` button. One row per live check: a status symbol (pass `checkmark.circle.fill`, warning `exclamationmark.triangle.fill`, blocking `xmark.octagon.fill`), the label (`label`) and the value (`metadata`, 2 lines max). Then the `System check details` link, the Zoom installation panel, and the `Support` links (`Activity log (n)`, `Export diagnostics…`, `Report a bug…`). |
-| **Stage header** (pinned at the top of the main column) | Compact identity (app icon at 28pt, title, version, Help). Status summary with a 3pt accent rule and the `status-headline` serif line. Then the stage action row (see States). |
+| **Stage header** (pinned at the top of the main column) | Compact identity: the app icon at `identity.iconSize` (28pt, loaded from the shipped `AppIcon.png` so it is correct even when unbundled), then the title, version and Help. Status summary with a 3pt accent rule and the `status-headline` serif line. Then the stage action row (see States). |
 | **Record** (scrolling) | During a run only, the `Live activity` well. Then the ordered 9-step repair record (`validate`, `closeZoom`, `backup`, `network`, `resetData`, `dns`, `updaters`, `mediaAccess`, `launch`): `44pt` minimum rows separated by `1pt` `border` rules, 4 columns at `>= 840pt` content width and stacked below that. Then backup provenance with `Reveal Backup`. |
 | **Guidance strip** (pinned at the bottom, `surface`) | One line saying what the actions will do, why they are unavailable, or the privileged-operation safety notice. |
 
@@ -31,7 +31,7 @@ Only one primary (amber) control is visible at a time. Do not use oversized bann
 
 ### Motion
 
-- Status tone changes animate with `ease-out` at the disclosure duration (`Theme.Motion.disclosureDuration`). The primary hover changes fill only.
+- Only the status accent rule colour animates (`ease-out`, `motion.controlFeedbackMs`). Status text, logs and layout update immediately, per [`../07-motion.md`](../07-motion.md). The primary hover changes fill and halo radius only.
 - Progress moves only when step states change. There are no indeterminate spinners except the brief `Checking this Mac…` while preflight loads.
 - When `accessibilityReduceMotion` is on, all animations are removed.
 
@@ -55,7 +55,7 @@ Only one primary (amber) control is visible at a time. Do not use oversized bann
 ## Icons
 
 - **SF Symbols exception:** functional macOS controls and status indicators use native **SF Symbols** paired with explicit text labels (see [`../06-icons.md`](../06-icons.md)). Remove decorative section-heading icons.
-- **Brand assets:** the macOS Dock/app icon is the minimal amber reset mark on a matte graphite tile, exported at `assets/exports/macos/AppIcon.png` (shipped as `Sources/1132Fixer/Resources/AppIcon.png`; `.icns` is generated from it). Vector sources: `assets/source/macos/AppIcon.svg` and `assets/source/macos/AppIcon-small-optical.svg` (heavier stroke for 16/32 px), with optical raster exports `assets/exports/macos/AppIcon-small-optical-*.png`. The tile is a rounded rectangle, not Apple's exact squircle mask. The cross-platform master `assets/1132-Fixer-App-Icon-1024x1024@1x.png` is unchanged and still serves the other platforms.
+- **Brand assets:** the macOS Dock/app icon is the minimal amber reset mark on a matte graphite tile, exported at `assets/exports/macos/AppIcon.png` (shipped as `Sources/1132Fixer/Resources/AppIcon.png`; `.icns` is generated from it). Vector sources: `assets/source/macos/AppIcon.svg` and `assets/source/macos/AppIcon-small-optical.svg` (heavier stroke for 16/32 px), with optical raster exports `assets/exports/macos/AppIcon-small-optical-*.png`. The consumer maps these in `.brand-assets.tsv` and uses them for the `icon_16x16`, `icon_16x16@2x` and `icon_32x32` slots of `AppIcon.icns`; every other size is downscaled from `AppIcon.png`. (`16x16@2x` and `32x32` are the same 32px drawing, kept as two files to match the iconset slots one-to-one.) The tile is a rounded rectangle, not Apple's exact squircle mask. The cross-platform master `assets/1132-Fixer-App-Icon-1024x1024@1x.png` is unchanged and still serves the other platforms.
 
 ## Sandboxing / security boundaries
 
