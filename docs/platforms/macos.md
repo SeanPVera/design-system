@@ -27,7 +27,7 @@ Do not use oversized identity banners, large action cards, static compatibility 
 ## Icons
 
 - **SF Symbols exception:** functional macOS controls and status indicators use native **SF Symbols** paired with explicit text labels (see [`../06-icons.md`](../06-icons.md)). Remove decorative section-heading icons.
-- **Brand assets:** Dock/app icon uses `assets/1132-Fixer-App-Icon-1024x1024@1x.png` (`Sources/1132Fixer/Resources/AppIcon.png`).
+- **Brand assets:** the macOS Dock/app icon is the minimal amber reset mark on a matte graphite tile, exported at `assets/exports/macos/AppIcon.png` (shipped as `Sources/1132Fixer/Resources/AppIcon.png`; `.icns` is generated from it). Vector sources: `assets/source/macos/AppIcon.svg` and `assets/source/macos/AppIcon-small-optical.svg` (heavier stroke for 16/32 px), with optical raster exports `assets/exports/macos/AppIcon-small-optical-*.png`. The tile is a rounded rectangle, not Apple's exact squircle mask. The cross-platform master `assets/1132-Fixer-App-Icon-1024x1024@1x.png` is unchanged and still serves the other platforms.
 
 ## Sandboxing / security boundaries
 

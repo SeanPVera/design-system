@@ -46,5 +46,8 @@ The macOS app ([`platforms/macos.md`](platforms/macos.md)) uses native `SF Pro` 
 | `label` (field or row label) | `13 / 18` | Semibold (`600`) | `SF Pro` |
 | `metadata` | `12 / 16` | Regular (`400`) | `SF Pro` |
 | `mono` (paths and diagnostics) | `13 / 20` | Regular (`400`) | `SF Mono` |
+| `status-headline` (the single workspace status line) | `26 / 32` | Semibold (`600`) | `New York` (system serif, `design: .serif`) |
+
+`status-headline` is the only serif role and appears once per window. It uses the system serif that ships with macOS; never bundle or download a font for it.
 
 Let content grow vertically rather than clipping or truncating to enforce a nominal line height.
