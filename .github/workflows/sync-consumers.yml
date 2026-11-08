@@ -13,9 +13,35 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Resolves which consumers exist for this owner. Defaults to the macOS app
+  # (<owner>/1132-fixer); override with the DESIGN_SYSTEM_SYNC_CONSUMERS repository
+  # variable. A configured repository that is missing or unreadable fails here,
+  # before anything checks out or pushes to it.
+  resolve:
+    name: Resolve consumer repositories
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.resolve.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Resolve and verify consumers
+        id: resolve
+        env:
+          OWNER: ${{ github.repository_owner }}
+          SYNC_CONSUMERS_JSON: ${{ vars.DESIGN_SYSTEM_SYNC_CONSUMERS }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          matrix="$(scripts/resolve-sync-consumers.sh)"
+          echo "Consumers: $matrix"
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
   prepare:
     name: Prepare ${{ matrix.repository }} update
-    if: github.ref == 'refs/heads/main'
+    needs: resolve
     runs-on: ubuntu-latest
     # A failed consumer produces no artifact; its matching publish leg will fail while
     # the other consumers can still publish independently.
@@ -23,11 +49,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        repository:
-          - macos
-          - windows
-          - browser
-          - website
+        include: ${{ fromJSON(needs.resolve.outputs.matrix) }}
 
     steps:
       - name: Check out consumer without persisted credentials
@@ -43,10 +65,19 @@ jobs:
         working-directory: consumer
         env:
           DESIGN_SYSTEM_SHA: ${{ github.sha }}
+          SOURCE_REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
-          # Every matrix repository is public, so preparation does not need the
-          # GitHub App private key or any cross-repository credential.
+          # Consumers are public, so preparation does not need the GitHub App private
+          # key or any cross-repository credential.
+          submodule_url="$(git config -f .gitmodules --get submodule.design-system.url || true)"
+          case "${submodule_url%.git}" in
+            "https://github.com/$SOURCE_REPOSITORY"|"git@github.com:$SOURCE_REPOSITORY") ;;
+            *)
+              echo "Consumer's design-system submodule points at '$submodule_url', not $SOURCE_REPOSITORY; refusing to sync." >&2
+              exit 1
+              ;;
+          esac
           git -C design-system fetch origin "$DESIGN_SYSTEM_SHA"
           git -C design-system checkout --detach "$DESIGN_SYSTEM_SHA"
 
@@ -87,7 +118,7 @@ jobs:
         working-directory: consumer
         env:
           PATCH_DIR: ${{ runner.temp }}/consumer-sync
-          CONSUMER_REPOSITORY: ${{ matrix.repository }}
+          CONSUMER_PLATFORM: ${{ matrix.platform }}
           DESIGN_SYSTEM_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
@@ -104,10 +135,10 @@ jobs:
             git add -- "$target"
           done < <(git show HEAD:.brand-assets.tsv)
 
-          # The only current consumer hook is Windows' deliberately narrow pin roller.
+          # The only consumer hook is Windows' deliberately narrow pin roller (platform: windows).
           # Keep this allowlist explicit so arbitrary tracked edits from consumer code
           # cannot be serialized into the privileged publishing job.
-          if [[ "$CONSUMER_REPOSITORY" == windows ]]; then
+          if [[ "$CONSUMER_PLATFORM" == windows ]]; then
             git add -- AGENTS.md DESIGN-SYNC.md
           fi
 
@@ -129,16 +160,12 @@ jobs:
 
   publish:
     name: Publish ${{ matrix.repository }} update
-    needs: prepare
+    needs: [resolve, prepare]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        repository:
-          - macos
-          - windows
-          - browser
-          - website
+        include: ${{ fromJSON(needs.resolve.outputs.matrix) }}
 
     steps:
       - name: Download prepared patch
@@ -173,7 +200,7 @@ jobs:
         working-directory: consumer
         env:
           PATCH_FILE: ${{ runner.temp }}/consumer-sync/consumer.patch
-          CONSUMER_REPOSITORY: ${{ matrix.repository }}
+          CONSUMER_PLATFORM: ${{ matrix.platform }}
           DESIGN_SYSTEM_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
@@ -190,7 +217,7 @@ jobs:
             [[ -z ${canonical:-} || ${canonical:0:1} == "#" || -z ${target:-} ]] && continue
             allowed_paths["$target"]=1
           done < <(git show HEAD:.brand-assets.tsv)
-          if [[ "$CONSUMER_REPOSITORY" == windows ]]; then
+          if [[ "$CONSUMER_PLATFORM" == windows ]]; then
             allowed_paths[AGENTS.md]=1
             allowed_paths[DESIGN-SYNC.md]=1
           fi
@@ -215,6 +242,18 @@ jobs:
 
       # The write token exists only on this fresh runner, after the patch has been applied
       # as inert data. No consumer script is executed in this job.
+      - name: Require sync GitHub App configuration
+        if: steps.apply.outputs.has_changes == 'true'
+        env:
+          APP_CLIENT_ID: ${{ vars.DESIGN_SYSTEM_SYNC_APP_CLIENT_ID }}
+          HAS_PRIVATE_KEY: ${{ secrets.DESIGN_SYSTEM_SYNC_APP_PRIVATE_KEY != '' }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$APP_CLIENT_ID" || "$HAS_PRIVATE_KEY" != true ]]; then
+            echo "::error::Changes are ready for ${{ matrix.repository }}, but the sync GitHub App is not configured (variable DESIGN_SYSTEM_SYNC_APP_CLIENT_ID and secret DESIGN_SYSTEM_SYNC_APP_PRIVATE_KEY). See docs/12-brand-assets.md. The default GITHUB_TOKEN cannot push to another repository."
+            exit 1
+          fi
+
       - name: Create consumer write token
         if: steps.apply.outputs.has_changes == 'true'
         id: write-token
@@ -235,6 +274,7 @@ jobs:
           REPOSITORY: ${{ github.repository_owner }}/${{ matrix.repository }}
           DESIGN_SYSTEM_SHA: ${{ github.sha }}
           APP_SLUG: ${{ steps.write-token.outputs.app-slug }}
+          SOURCE_REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
           safe_git() { /usr/bin/git -c core.hooksPath=/dev/null "$@"; }
@@ -258,11 +298,11 @@ jobs:
             /usr/bin/gh pr edit "$existing" \
               --repo "$REPOSITORY" \
               --title "Update design system to ${DESIGN_SYSTEM_SHA:0:12}" \
-              --body "Automated design-system submodule and canonical brand asset sync from 1132-Fixer/design-system@$DESIGN_SYSTEM_SHA."
+              --body "Automated design-system submodule and canonical brand asset sync from $SOURCE_REPOSITORY@$DESIGN_SYSTEM_SHA."
           else
             /usr/bin/gh pr create \
               --repo "$REPOSITORY" \
               --head "$branch" \
               --title "Update design system to ${DESIGN_SYSTEM_SHA:0:12}" \
-              --body "Automated design-system submodule and canonical brand asset sync from 1132-Fixer/design-system@$DESIGN_SYSTEM_SHA."
+              --body "Automated design-system submodule and canonical brand asset sync from $SOURCE_REPOSITORY@$DESIGN_SYSTEM_SHA."
           fi
